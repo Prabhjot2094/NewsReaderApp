@@ -2,6 +2,7 @@ import os
 
 	
 def get_filenames(location):
+	print location
 	files = os.listdir("F:\News\\"+location+"\\")
 	arr = []
 	x=0

@@ -3,6 +3,8 @@ import urllib2
 import sys
 import urllib
 import csv
+import os
+import shutil
 
 
 eco_link = "http://economictimes.indiatimes.com/news/latest-news/most-read"
@@ -96,6 +98,9 @@ def toi_scrape(news_type):
 	li = top_news.find_all("li")
 
 	directory = "F:\News\\"+news_type+"\\"
+	if os.path.exists(directory)==True:
+		shutil.rmtree(directory)
+	os.mkdir(directory)
 
 	for i in li:
 		news = i.text.encode('utf-8')
@@ -124,6 +129,9 @@ def eco_times_scrape():
 	li = list_parent.find_all("li")
 
 	directory = "F:\News\\business\\"
+	if os.path.exists(directory)==True:
+		shutil.rmtree(directory)
+	os.mkdir(directory)
 
 	for i in li:
 		link = i.a["href"]
