@@ -10,7 +10,7 @@ import shutil
 eco_link = "http://economictimes.indiatimes.com/news/latest-news/most-read"
 toi_link = "http://timesofindia.indiatimes.com"
 
-def get_img(soup,link,directory,name):
+def get_img(soup,link,directory,name,j):
 	print "In get_img"
 	img_parent = soup.find("section",attrs={"class":"highlight clearfix"})
 	if img_parent == None:
@@ -26,10 +26,10 @@ def get_img(soup,link,directory,name):
 		print "returning from get_img"
 		return
 	link = link+ext
-	image_name = directory+name+"_.jpg"#ext[-3:]
+	image_name = directory+name+str(j)+"_.jpg"#ext[-3:]
 	urllib.urlretrieve(link,image_name)
 
-def get_img_eco(soup,link,directory,name):
+def get_img_eco(soup,link,directory,name,j):
 	img_parent = soup.find("figure")
 	#img_parent.img["src"]
 	try :
@@ -39,10 +39,10 @@ def get_img_eco(soup,link,directory,name):
 		return
 
 	link = link+ext
-	image_name = directory+name+"_.jpg"
+	image_name = directory+name+str(j)+"_.jpg"
 	urllib.urlretrieve(link,image_name)
 
-def detail_scrape(link,f,directory,name,site):
+def detail_scrape(link,f,directory,name,site,j):
 	#return
 	print "In detai_scrape"
 	if link[0]!='h':
@@ -58,9 +58,9 @@ def detail_scrape(link,f,directory,name,site):
 		print "Souped"
 
 		if site=="toi":
-			get_img(soup,link,directory,name)
+			get_img(soup,link,directory,name,j)
 		elif site=="eco":
-			get_img_eco(soup,link,directory,name)
+			get_img_eco(soup,link,directory,name,j)
 			
 		heading = soup.find("h1")
 		heading = heading.text.encode("utf-8")
@@ -76,18 +76,6 @@ def detail_scrape(link,f,directory,name,site):
 	except:
 		print "returning from detail scrape"
 		return
-	#sys.exit()
-
-
-# def eco_times_detail_scrape(link,f,directory,name):
-# 	if link[0]!='h':
-# 		link = toi_link+link
-# 	print link
-
-# 	lin = urllib2.urlopen(link).read()
-# 	soup = BeautifulSoup(lin)
-
-# 	detail_news = 
 
 
 def toi_scrape(news_type):
@@ -97,18 +85,25 @@ def toi_scrape(news_type):
 	top_news = soup.find("ul",attrs={"data-vr-zone":news_type})
 	li = top_news.find_all("li")
 
-	directory = "F:\News\\"+news_type+"\\"
+	directory = "F:/News/"+news_type+"/"
 	if os.path.exists(directory)==True:
 		shutil.rmtree(directory)
 	os.mkdir(directory)
 
+	j=0
 	for i in li:
+		
+		j+=1
+
 		news = i.text.encode('utf-8')
 		link = i.a["href"]
 
 		ext = news.split()
-		ext[0] = ext[0].translate(None,":/\?*\"<>|'")		
-		file_name = directory+ext[0]+"_.txt"
+		ext[0] = ext[0].translate(None,":/\?*\"<>|'")
+
+		ext[0]=''.join([i if ord(i) < 128 else ' ' for i in ext[0]])
+
+		file_name = directory+ext[0]+str(j)+"_.txt"
 		
 		if news[1:4]=="Adv" or link.find("articleshow")<0:
 			continue
@@ -119,7 +114,7 @@ def toi_scrape(news_type):
 
 		print news
 		print link
-		detail_scrape(link,f,directory,ext[0],"toi")
+		detail_scrape(link,f,directory,ext[0],"toi",j)
 
 def eco_times_scrape():
 	lin = urllib2.urlopen(eco_link).read()
@@ -128,18 +123,22 @@ def eco_times_scrape():
 	list_parent = soup.find("ul",attrs = {"class":"data"})
 	li = list_parent.find_all("li")
 
-	directory = "F:\News\\business\\"
+	directory = "F:/News/business/"
 	if os.path.exists(directory)==True:
 		shutil.rmtree(directory)
 	os.mkdir(directory)
 
+	j=0
 	for i in li:
+		
+		j+=1
+
 		link = i.a["href"]
 		news = i.text.encode("utf-8")
 
 		ext = news.split()
 		ext[0] = ext[0].translate(None,":/\?*\"<>|'")		
-		file_name = directory+ext[0]+"_.txt"
+		file_name = directory+ext[0]+str(j)+"_.txt"
 
 		if news[1:4]=="Adv" or link.find("articleshow")<0:
 			continue
@@ -149,91 +148,10 @@ def eco_times_scrape():
 		f.write("#")
 		print news
 		print link
-		detail_scrape(link,f,directory,ext[0],"eco")
+		detail_scrape(link,f,directory,ext[0],"eco",j)
 
 
-
-	# while i<10:
-	# 	i+=1
-	# 	print li
-	# 	li=li.next_sibling
-
-news_list = ["top_stories","across_toi","latest"]
+	news_list = ["top_stories","across_toi","latest"]
 for news in news_list:
 	toi_scrape(news)
 eco_times_scrape()
-# headline_scrape("top_stories")
-# headline_scrape("latest")
-# headline_scrape("across_toi")
-#top_news = soup.find("ul",attrs={"data-vr-zone":"top_stories"})
-#print result
-# li = top_news.find_all("li")
-
-# for i in li:
-# 	news = i.text.encode('utf-8')
-# 	link = i.a["href"]
-
-# 	ext = news.split()
-# 	ext[0] = ext[0].translate(None,":/\?*\"<>|'")		
-# 	directory = "F:\News\\top_news\\"+ext[0]+"_.txt"
-	
-# 	if news[1:4]=="Adv" or link.find("articleshow")<0:
-# 		continue
-# 	f=open(directory,'w')
-# 	f.write(news)
-# 	#string = news+'^'+link
-# 	#top_news.write(string)
-# 	#writer.writerow(string)
-# 	print news
-# 	print link
-# 	detail_scrape(link,f)
-
-
-# latest = soup.find("ul",attrs={"data-vr-zone":"latest"})
-# #print result
-# li = latest.find_all("li")
-
-# for i in li:	
-# 	news = i.text.encode('utf-8')
-# 	link = i.a["href"]
-	
-# 	ext = news.split()
-# 	ext[0] = ext[0].translate(None,":/\?*\"<>|'")		
-# 	directory = "F:\News\\latest\\"+ext[0]+"_.txt"
-
-# 	if news[1:4]=="Adv" or link.find("articleshow")<0:
-# 		continue
-
-# 	f=open(directory,'w')
-# 	f.write(news)
-# 	#string = news+'^'+link
-# 	#top_news.write(string)
-# 	#writer.writerow(string)
-# 	print news[1:4]
-# 	print link
-# 	detail_scrape(link,f)
-
-# across_toi = soup.find("ul",attrs={"data-vr-zone":"across_toi"})
-# #print result
-# li = across_toi.find_all("li")
-
-# for i in li:
-# 	news = i.text.encode('utf-8')
-# 	link = i.a["href"]
-	
-# 	ext = news.split()
-# 	ext[0] = ext[0].translate(None,":/\?*\"<>|'")		
-# 	directory = "F:\News\\across_toi\\"+ext[0]+"_.txt"
-
-# 	if news[1:4]=="Adv" or link.find("articleshow")<0:
-# 		continue
-
-# 	f=open(directory,'w')
-# 	f.write(news)
-# 	f.write("\n")
-# 	#string = news+'^'+link
-# 	#top_news.write(string)
-# 	#writer.writerow(string)
-# 	print news
-# 	print link
-# 	detail_scrape(link,f)

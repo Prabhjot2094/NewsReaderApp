@@ -1,45 +1,15 @@
 '''
     Simple socket server using threads
 '''
- 
 import socket
 import sys
 from threading import Thread
 import threading
-import time 
-from functions import *
+import os
 
-
-def clientThread(conn):
-    i=0
-
-    print "waitiing for recieving"
-    news_type = conn.recv(512)
-    print news_type
-    arr = get_filenames(news_type)
-    #print "Sending"
-
-    for item in arr:
-        item_name = item.split('\\') 
-        item_name = item_name[-1:]
-        #print "Sending ",item
-        conn.send(item_name[0]+"helloFROMtheINSIDE")
-        f=open(item,"rb")
-        #infinite loop so that function do not terminate and thread do not end.
-        while True:
-            i+=1 
-            #print i
-            data = f.read(4096)
-            if not data:
-                break
-            conn.send(data)
-        f.close()
-        conn.send("helloFROMtheINSIDE")
-
-    conn.close()
 
 def main():
-    HOST = '0.0.0.0' 
+    HOST = '0.0.0.0'
     PORT = 50011
 
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -50,7 +20,7 @@ def main():
         print 'Socket bind complete'
     except socket.error as msg:
         print 'Bind failed. \nError Code : ' + str(msg[0]) + ' \nMessage :' + msg[1]
-        sys.exit()
+        sys.exit(0)
 
     s.listen(0)
     print 'Socket now listening'
@@ -61,12 +31,46 @@ def main():
         conn, addr = s.accept()
         print 'Connected with ' + addr[0] + ':' + str(addr[1])
         t=Thread(target = clientThread,args = (conn,))
-        #clientThread(conn)
-        # print "Thread ",i," Active\n"
         t.start()
-        print threading.enumerate()
-    print "##################################################################################################################################################################################################################################################################################"
-    s.close()
+        print threading.activeCount();
+
+
+def clientThread(conn):
+
+    try:
+        news_type = conn.recv(512)
+        arr = get_filenames(news_type)
+
+        for item in arr:
+            item_name = item.split('/') 
+            item_name = item_name[-1:]
+            conn.send(item_name[0]+"aAaAaAaAaAaAaAaAaAaA")
+            f=open(item,"rb")
+            
+            i=0
+            while True:
+                i+=1 
+                data = f.read(512)
+                if not data:
+                    break    
+                conn.send(data)
+            conn.send("aAaAaAaAaAaAaAaAaAaA")
+            f.close()
+
+        conn.close()    
+
+    except socket.error as msg:
+        print 'Connect failed. \nError Code : ' + str(msg[0]) + ' \nMessage :' + msg[1]
+        return
+
+def get_filenames(location):
+    #print location
+    files = os.listdir("F:/News/"+location+"/")
+    arr = []
+    for i in files:
+        directory = "F:/News/"+location+"/"+i
+        arr.append(directory)
+    return arr
 
 if __name__=="__main__":
     main()

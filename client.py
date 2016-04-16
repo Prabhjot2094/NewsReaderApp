@@ -1,93 +1,85 @@
-# client.py  
 import os
 import sys
 import socket
 from threading import Thread
 import time
-import shutil
+import shutil	
 
-# create a socket object
-def seperate_files(x,directory):
+def main():
+	begin_time = time.time()
+
+	news_list  = ["business","across_toi","latest","top_stories"]	
+	
 	i=0
+	for news in news_list:
+		print "NewsType sent = " , news
+		#client(news)
+		t=Thread(target = client,args = {news})
+		t.start()
+		#t.join()
+		i+=1
 
+	print "Time Taken = ",time.time()-begin_time
+
+def client(news_type):
+	s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)                        
+	host = "127.0.0.1"
+	port = 50011
+	
+	try :
+		s.connect((host, port)) 
+
+		s.settimeout(10.0)
+
+		s.send(news_type)
+
+		data = ''
+		while True:
+			tm = s.recv(512)
+			if not tm:
+				break
+			data = data+tm
+		
+		# f1 = open(news_type+".txt",'w')	
+		# f1.write(data)
+		# f1.close()
+		
+		print "News Type ",news_type,"Recieved\n"
+
+		s.shutdown(socket.SHUT_RDWR)
+		
+		print "Socket Shutdown Complete !!"
+
+	except socket.error as msg :
+		print 'Connect failed. \nError Code : ' + str(msg)
+		sys.exit(0)
+
+	split_data = data.split("aAaAaAaAaAaAaAaAaAaA")
+
+	seperate_files(split_data,news_type)
+
+def seperate_files(split_data,directory):
+	
 	if os.path.exists(directory)==True:
 		shutil.rmtree(directory)
-#	if os.path.exists(directory)==False:
-	#time.sleep(3)
+ 
 	os.mkdir(directory)
 
+	i=0
 	while True:
-		string = x[i]
-		if string[-4:]==".jpg":
-			f=open(directory+"/"+string,"wb")
+		name = split_data[i]
+		if name[-4:]==".jpg":
+			f=open(directory+"/"+name,"wb")
 			i+=1
-			f.write(x[i])
+			f.write(split_data[i])
 			i+=1
-		elif string[-4:]==".txt":
-			f=open(directory+"/"+string,"wb")
+		elif name[-4:]==".txt":
+			f=open(directory+"/"+name,"wb")
 			i+=1
-			f.write(x[i])
+			f.write(split_data[i])
 			i+=1
 		else:
 			break
 
-def client_in_the_house(imt,news_type):
-	s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)                        
-	host = "127.0.0.1"
-	port = 50011
-
-	port = socket.htons(50011)
-	port = socket.htons(port)
-	print port
-	s.connect((host, port)) 
-	s.settimeout(5.0)
-	f=open("success.txt","wb")
-	#news_type = ["business","top"]
-
-
-	s.send(news_type)
-	print "NewsType sent"
-	data = ''
-	while True:
-		#print "Waiting to receive"
-		tm = s.recv(512)
-
-		if not tm:
-			break
-		data = data+tm
-		f.write(tm)
-		#print tm  
-	f.close()
-	x = data.split("helloFROMtheINSIDE")
-	#count = 0
-	# for txt in x:	
-	# 	count+=1
-	# 	print count,"\n",txt,"\n" 
-	fx=open(news_type+".txt",'w')
-	fx.write(data)
-	fx.close()
-	seperate_files(x,news_type)
-	#s.shutdown(0)
-	#s.close()
-	print "Thread Closed but not socket"
-
-def main():
-	begin_time = time.time()
-	cnt=0
-	news_list = ["business","across_toi","latest","top_stories"]
-	while cnt!=1 :	
-		i=0
-		cnt+=1
-		for news in news_list:
-			print news
-			t=Thread(target = client_in_the_house,args = {str(i),news})
-			t.start()
-			#t.join()
-			i+=1
-			#break
-	print time.time()-begin_time
-
 if __name__=="__main__":
-	main()
-
-#print("The time got from the server is %s" % tm.decode('ascii'))
+	 main()
